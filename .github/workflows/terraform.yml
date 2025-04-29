@@ -17,9 +17,19 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
+        env:
+          TF_VAR_snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          TF_VAR_snowflake_user: ${{ secrets.SNOWFLAKE_USER }}
+          TF_VAR_snowflake_role: ${{ secrets.SNOWFLAKE_ROLE }}
+          TF_VAR_snowflake_private_key: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: terraform init
 
       - name: Terraform Plan
+        env:
+          TF_VAR_snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          TF_VAR_snowflake_user: ${{ secrets.SNOWFLAKE_USER }}
+          TF_VAR_snowflake_role: ${{ secrets.SNOWFLAKE_ROLE }}
+          TF_VAR_snowflake_private_key: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: terraform plan -out=tfplan.out
 
       - name: Validate Service Account TYPE
@@ -37,4 +47,9 @@ jobs:
 
       - name: Terraform Apply
         if: success()
+        env:
+          TF_VAR_snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          TF_VAR_snowflake_user: ${{ secrets.SNOWFLAKE_USER }}
+          TF_VAR_snowflake_role: ${{ secrets.SNOWFLAKE_ROLE }}
+          TF_VAR_snowflake_private_key: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: terraform apply -auto-approve tfplan.out
