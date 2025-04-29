@@ -1,0 +1,40 @@
+name: Terraform CI/CD for Snowflake
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan.out
+
+      - name: Validate Service Account TYPE
+        run: |
+          terraform show -json tfplan.out > plan.json
+          
+          TYPE_FOUND=$(jq '.planned_values.root_module.resources[] | select(.type == "snowflake_user") | .values.type' plan.json)
+
+          if [[ "$TYPE_FOUND" != "\"SERVICE\"" ]]; then
+            echo "::error file=service_account.tf,line=1,col=1::Validation failed: Expected TYPE='SERVICE' for service account user, but found $TYPE_FOUND"
+            exit 1
+          else
+            echo "Validation passed: TYPE is SERVICE ✅"
+          fi
+
+      - name: Terraform Apply
+        if: success()
+        run: terraform apply -auto-approve tfplan.out
